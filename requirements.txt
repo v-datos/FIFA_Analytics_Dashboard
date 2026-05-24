@@ -1,0 +1,10 @@
+streamlit
+pandas
+google-cloud-bigquery
+plotly
+matplotlib
+seaborn
+mplsoccer
+google-auth
+db-dtypes
+pyarrow

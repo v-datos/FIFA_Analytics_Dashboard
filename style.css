@@ -1,0 +1,140 @@
+@import url('https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap');
+
+/* Dark background */
+.stApp {
+    background-color: #0e1117 !important;
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Apply Play font to all text */
+html, body, [class*="css"] {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6, .stSubheader {
+    font-family: 'Play', sans-serif !important;
+    font-weight: bold !important;
+    color: #e8ecf0 !important;
+}
+
+/* Metric cards */
+[data-testid="stMetric"] {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 16px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+[data-testid="stMetricValue"] {
+    font-family: 'Play', sans-serif !important;
+    font-weight: bold !important;
+    font-size: 2rem;
+    color: #f5c518 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    font-family: 'Play', sans-serif !important;
+    color: #a8b2c1 !important;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+[data-testid="stMetricDelta"] {
+    font-family: 'Play', sans-serif !important;
+}
+
+.stMetric, .stMetric > div, .stMetric label {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 8px;
+    background-color: transparent;
+}
+
+.stTabs [data-baseweb="tab"] {
+    font-family: 'Play', sans-serif !important;
+    font-weight: bold !important;
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    background-color: #1a1a2e;
+    color: #a8b2c1 !important;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid #0f3460;
+    border-bottom: none;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #1a6b3c !important;
+    color: white !important;
+    border-color: #f5c518 !important;
+}
+
+.stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+    font-family: 'Play', sans-serif !important;
+    font-weight: bold !important;
+}
+
+/* Tables */
+.dataframe, .dataframe * {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+    background-color: #141820 !important;
+    border-right: 1px solid #1f2937;
+}
+
+.css-1d391kg, .css-1d391kg * {
+    font-family: 'Play', sans-serif !important;
+}
+
+section[data-testid="stSidebar"] * {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Selectbox and inputs */
+.stSelectbox, .stSelectbox > div, .stSelectbox label, .stSelectbox select {
+    font-family: 'Play', sans-serif !important;
+}
+
+.stTextInput, .stTextInput > div, .stTextInput label, .stTextInput input {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Markdown */
+.stMarkdown, .stMarkdown > div, .stMarkdown p {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Dropdown options */
+div[data-baseweb="select"] > div {
+    font-family: 'Play', sans-serif !important;
+}
+
+/* Custom card styling */
+.stat-card {
+    background: linear-gradient(145deg, #1a1a2e, #16213e);
+    border: 1px solid #0f3460;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Team header */
+.team-header {
+    padding: 20px 30px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #1a6b3c 0%, #0d4a28 60%, #0a3520 100%);
+    color: white;
+    border-left: 6px solid #f5c518;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    font-family: 'Play', sans-serif !important;
+}

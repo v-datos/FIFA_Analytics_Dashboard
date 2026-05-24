@@ -1,0 +1,38 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/midyear-castle-328020/fifa-dashboard', '.']
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/midyear-castle-328020/fifa-dashboard']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'fifa-dashboard'
+      - '--image'
+      - 'gcr.io/midyear-castle-328020/fifa-dashboard'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '3'
+      - '--cpu-throttling'
+      - '--liveness-probe=httpGet.path=/_stcore/health,httpGet.port=8080'
+
+images:
+  - 'gcr.io/midyear-castle-328020/fifa-dashboard'

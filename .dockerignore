@@ -1,0 +1,41 @@
+# Service account credentials - NEVER include in image
+*.json
+
+# Python virtual environment (huge, not needed)
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+
+# Streamlit secrets (injected at runtime via Cloud Run / secrets.toml)
+.streamlit/secrets.toml
+
+# Development/local files
+.idea/
+.junie/
+.DS_Store
+.git/
+.gitignore
+.dockerignore
+.gcloudignore
+
+# Claude Code AI workspace (not needed in image)
+.claude/
+*.jsonl
+
+# Environment files
+.env
+.env.*
+
+# Non-production files
+legacy_files/
+tools/
+doc/
+
+# Separate app — has its own Dockerfile
+match_analysis_dashboard/
+
+# Stale/removed directories (kept for safety)
+fifa_bq/

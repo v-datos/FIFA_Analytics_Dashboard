@@ -1,0 +1,32 @@
+# Service account credentials - NEVER commit
+*.json
+!package.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Streamlit secrets (local only — use secrets.toml.example as template)
+.streamlit/secrets.toml
+
+# Environment variables
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# JetBrains IDE
+.idea/
+.junie/
+
+# Claude Code AI workspace (conversation logs, project memory)
+.claude/
+*.jsonl
+
+# Fonts are intentionally committed (required for Cloud Run image)
+# *.ttf

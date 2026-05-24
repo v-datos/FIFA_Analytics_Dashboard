@@ -1,0 +1,14 @@
+.gcloudignore
+.git/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.json
+.streamlit/secrets.toml
+.idea/
+.DS_Store
+legacy_files/
+tools/
+doc/
+fifa_bq/

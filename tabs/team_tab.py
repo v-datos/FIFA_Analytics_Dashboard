@@ -145,7 +145,7 @@ def render_team_tab(client):
                                 competition=comp_filter,
                                 team_color='#1f77b4'
                             )
-                            st.image(png_bytes, use_column_width=True)
+                            st.image(png_bytes, use_container_width=True)
                         except Exception as e:
                             st.error(f"Error creating radar chart: {str(e)}")
                 
@@ -172,7 +172,7 @@ def render_team_tab(client):
                 with st.spinner("Generating shot map..."):
                     try:
                         png_bytes = get_cached_shot_map(client, selected_team, competition=comp_filter)
-                        st.image(png_bytes, use_column_width=True)
+                        st.image(png_bytes, use_container_width=True)
                     except Exception as e:
                         st.error(f"Error creating shot map: {str(e)}")
             
@@ -194,7 +194,7 @@ def render_team_tab(client):
                             client, selected_team, competition=comp_filter,
                             total_passes=total, completed_passes=completed
                         )
-                        st.image(png_bytes, use_column_width=True)
+                        st.image(png_bytes, use_container_width=True)
                     except Exception as e:
                         st.error(f"Error creating attacking passes visualization: {str(e)}")
             

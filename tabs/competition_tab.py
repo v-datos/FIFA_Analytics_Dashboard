@@ -100,7 +100,7 @@ def render_competition_tab(client):
             with st.spinner("Generating pressure events visualization..."):
                 try:
                     png_bytes = get_cached_pressure_events(client, selected_competition)
-                    st.image(png_bytes, use_column_width=True)
+                    st.image(png_bytes, use_container_width=True)
                 except Exception as e:
                     st.error(f"Error creating pressure events comparison: {str(e)}")
         

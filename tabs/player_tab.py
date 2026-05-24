@@ -102,7 +102,7 @@ def render_player_tab(client):
                             player=selected_player, 
                             competition=comp_filter
                         )
-                        st.image(png_bytes, use_column_width=True)
+                        st.image(png_bytes, use_container_width=True)
                     except Exception as e:
                         st.error(f"Error creating player shot map: {str(e)}")
             

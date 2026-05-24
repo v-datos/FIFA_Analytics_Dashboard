@@ -124,7 +124,7 @@ def render_match_tab(client):
                     def render_shot_map_team1():
                         with st.spinner(f"Generating shot map for {team1}..."):
                             png_bytes = get_cached_shot_map(client, team1, match_id=selected_match_id)
-                            st.image(png_bytes, use_column_width=True)
+                            st.image(png_bytes, use_container_width=True)
                     
                     render_shot_map_team1()
 
@@ -135,7 +135,7 @@ def render_match_tab(client):
                     def render_shot_map_team2():
                         with st.spinner(f"Generating shot map for {team2}..."):
                             png_bytes = get_cached_shot_map(client, team2, match_id=selected_match_id)
-                            st.image(png_bytes, use_column_width=True)
+                            st.image(png_bytes, use_container_width=True)
                     
                     render_shot_map_team2()
             else:

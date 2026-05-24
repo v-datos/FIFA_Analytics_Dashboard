@@ -1,169 +1,104 @@
 <p align="center">
-  <img src="fifa_readme.png" width="100%" alt="FIFA Football Analytics Header">
+  <img src="fifa_readme.png" width="100%" alt="FIFA Football Analytics Dashboard">
 </p>
 
+<h1 align="center">FIFA Football Analytics Dashboard</h1>
 
-# ⚽ FIFA Football Analytics Dashboard
+An interactive football analytics dashboard for exploring StatsBomb event data across competitions, matches, teams, and players.
 
-A high-performance, interactive football analytics platform built with **Streamlit**. This dashboard transforms raw StatsBomb event data into professional-grade visualizations, powered by a **Google BigQuery** backend.
+The dashboard is designed for scouting, match review, performance analysis, and football storytelling. It turns event-level match data into visual summaries that help answer practical questions: who created the best chances, which teams handled pressure well, where shots came from, how teams attacked, and how individual players contributed across matches.
 
-## 🚀 Features
+**Live dashboard:** [accionar.xyz/dashboards/competitions/](https://accionar.xyz/dashboards/competitions/)
 
-The dashboard is divided into four specialized analysis modules:
+## What You Can Do
 
-- **🏆 Competition Analysis:** High-level tournament stats, top scorers, team-wide metric distributions, and pressure event comparisons.
-- **⚔️ Match Analysis:** Deep dives into specific games including shot maps, pass networks, xG distributions, and team touch comparisons.
-- **🛡️ Team Analysis:** Performance radar charts (0-100 normalized), xG distributions, attacking pass patterns, and shot maps.
-- **👤 Player Analysis:** Individual performance metrics, shot maps, and passing efficiency under pressure.
+- Compare competitions by goals, shots, xG, fouls, cards, tackles, and player/team participation.
+- Identify top scorers and compare their goals, shots, and expected goals.
+- Review individual matches through team-level scorelines, possession, passing, shooting, xG, and shot maps.
+- Profile teams using KPIs, radar charts, shot locations, xG distributions, and attacking pass patterns.
+- Search individual players and inspect goals, assists, shots, passing, defensive actions, cards, xG, shot maps, and match-by-match history.
+- Filter team and player analysis by competition to separate tournament-specific performance from all-competition totals.
 
-## 🛠️ Technical Stack
+## Dashboard Sections
 
-- **Frontend:** [Streamlit](https://streamlit.io/)
-- **Data Visualization:** [Plotly](https://plotly.com/python/), [Seaborn](https://seaborn.pydata.org/), [Matplotlib](https://matplotlib.org/)
-- **Pitch Graphics:** [mplsoccer](https://mplsoccer.readthedocs.io/)
-- **Database:** Google BigQuery (`midyear-castle-328020.fifa_data.events`)
-- **Language:** Python 3.11+
-- **Infrastructure:** Docker, Google Cloud Run
+### Competition Analysis
 
-## 📁 Project Structure
+Use this section to understand a tournament or competition at a high level.
 
-```text
-├── fifa_dashboard_bq.py          # Main entry point — page config + tab routing
-├── data_loader.py                # Data fetching layer (get_matches, get_teams, etc.)
-├── bigquery_helpers.py           # BigQuery connection, parameterized query execution
-├── fifa_metrics_bq.py            # Advanced metrics (xG, pressure, pass analysis)
-├── fifa_visualizations_bq.py     # Facade — re-exports static + interactive functions
-├── static_viz_bq.py              # Static visualizations (Matplotlib, mplsoccer)
-├── interactive_viz_bq.py         # Interactive visualizations (Plotly)
-├── style.css                     # Dark-theme Streamlit UI styling
-├── Play-Bold.ttf                 # Custom font (bold)
-├── Play-Regular.ttf              # Custom font (regular)
-├── Dockerfile                    # Container config for Cloud Run (Python 3.11-slim)
-├── requirements.txt              # Python dependencies
-│
-├── tabs/                         # One module per dashboard tab
-│   ├── competition_tab.py        # 🏆 Competition Analysis tab
-│   ├── match_tab.py              # ⚔️ Match Analysis tab
-│   ├── team_tab.py               # 🛡️ Team Analysis tab
-│   └── player_tab.py             # 👤 Player Analysis tab
-│
-├── .streamlit/
-│   ├── secrets.toml              # GCP service account credentials (gitignored)
-│   └── secrets.toml.example      # Safe credential template
-│
-└── doc/                          # Project documentation
-    ├── ARCHITECTURE.md           # Modular architecture overview
-    ├── DEPLOYMENT_AND_PERFORMANCE.md  # Cloud Run deployment guide
-    ├── SQL_ESCAPING_FIX.md       # History of SQL injection fix → parameterized queries
-    ├── BIGQUERY_SETUP_STATUS.md  # Schema verification and setup status
-    └── bigquery/                 # BigQuery-specific references
-        ├── OPTIMIZATION_SUMMARY.md
-        ├── radar.md
-        └── radar_integration.md
-```
+You can select a competition and review:
 
-## 🚦 Getting Started
+- Total matches, teams, players, goals, shots, xG, fouls, tackles, cards, and penalty goals.
+- Top scorer tables with goals, shots, and total xG.
+- Pressure-event comparisons across teams.
+- Passing accuracy versus passing accuracy under pressure.
 
-### 1. Prerequisites
-Ensure you have Python 3.11+ installed.
+This section is useful for quickly identifying the shape of a competition: attacking volume, discipline, physical intensity, and which teams or players stand out.
 
-### 2. Installation
-Clone the repository, create a virtual environment to keep dependencies isolated, and install them:
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+### Match Analysis
 
-### 3. Configuration
-To connect to the BigQuery backend, you need a GCP Service Account:
-1. Create a `.streamlit/secrets.toml` file in the project root.
-2. Add your GCP credentials in the following format:
-```toml
-[gcp_service_account]
-type = "service_account"
-project_id = "your-project-id"
-private_key_id = "your-key-id"
-private_key = "---BEGIN PRIVATE KEY---\n...\n---END PRIVATE KEY---\n"
-client_email = "your-service-account@your-project.iam.gserviceaccount.com"
-client_id = "..."
-auth_uri = "https://accounts.google.com/o/oauth2/auth"
-token_uri = "https://oauth2.googleapis.com/token"
-auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
-client_x509_cert_url = "..."
-```
+Use this section for game-level review.
 
-### 4. Running the Dashboard
-```bash
-streamlit run fifa_dashboard_bq.py
-```
+After selecting a competition and match, the dashboard shows:
 
-## 🚢 Deployment
+- Team-versus-team summary.
+- Possession share.
+- Goals, shots, shots on target, pass accuracy, and total passes.
+- xG distribution comparison between both teams.
+- Side-by-side shot maps for each team.
 
-The project is containerized and deployed to **Google Cloud Run**.
+This section helps evaluate whether the scoreline matched the chance quality, which team created better opportunities, and where each side generated shots.
 
-**Live URLs:**
-- Main Dashboard: `https://fifa-dashboard-80399171028.us-central1.run.app`
+### Team Analysis
 
-**Build & Deploy:**
-```bash
-# Authenticate (user account with Cloud Build permissions)
-gcloud auth login
+Use this section to build a team profile.
 
-# Set project
-gcloud config set project midyear-castle-328020
+You can select a team and optionally filter by competition. The dashboard includes:
 
-# Build and push image
-gcloud builds submit \
-    --tag gcr.io/midyear-castle-328020/fifa-dashboard .
+- Matches played, goals scored, goals conceded, shots, shots on target rate, total xG, xG per shot, pass completion, passes per match, shot assists, defensive volume, and pressure indicators.
+- Interactive xG distribution by shot.
+- Team performance radar using shooting, chance creation, pressure, set-piece, passing, and goalkeeper distribution metrics.
+- Shot map for the selected team.
+- Attacking-pass visualization covering crosses, cutbacks, switches, and through balls.
 
-# Deploy to Cloud Run
-gcloud run deploy fifa-dashboard \
-    --image gcr.io/midyear-castle-328020/fifa-dashboard \
-    --platform managed \
-    --region us-central1 \
-    --allow-unauthenticated \
-    --memory 2Gi \
-    --cpu 2 \
-    --min-instances 0 \
-    --max-instances 3 \
-    --cpu-throttling \
-    --liveness-probe=httpGet.path=/_stcore/health,httpGet.port=8080
-```
+This section is useful for comparing playing styles, attacking efficiency, shot quality, and how a team progresses the ball into dangerous areas.
 
-Refer to `doc/DEPLOYMENT_AND_PERFORMANCE.md` for full details.
+### Player Analysis
 
-## 📊 Key Metrics Explained
+Use this section for individual player review.
 
-- **Expected Goals (xG):** Probability that a shot results in a goal based on historical data.
-- **Passes Under Pressure:** Completion rate of passes made while an opponent is within ~3m.
-- **Progressive Actions:** Actions that move the ball significantly closer to the opponent's goal.
-- **Normalization:** Team stats are normalized (0-100) against the entire database for radar charts.
+You can search for a player, filter by competition, and inspect:
 
-## 📝 Roadmap & Status
+- Position, goals, shots, shots on target, assists, passes, pass completion, cards, tackles, interceptions, fouls, and total xG.
+- Player shot map.
+- Match-by-match history with goals, shots, assists, and pass accuracy.
 
-- [x] BigQuery Migration (Complete)
-- [x] SQLite Removal (Complete)
-- [x] Modular Tab Architecture — `tabs/` directory (Complete)
-- [x] Static + Interactive Viz Split — `static_viz_bq.py` / `interactive_viz_bq.py` (Complete)
-- [x] Interactive Radar Charts (Complete)
-- [x] SQL Injection Protection — Parameterized queries throughout (Complete)
-- [x] `escape_sql_string` fully removed — replaced by `bigquery.ScalarQueryParameter` (Complete)
-- [x] Streamlit Caching Fix — `_query_params` + `params_hash` pattern (Complete)
-- [x] Dark-theme UI with custom CSS (`style.css`) (Complete)
-- [x] Competition name formatting — slug → human-readable (Complete)
-- [x] Match selectbox — shows "Team A vs Team B" instead of match IDs (Complete)
-- [x] Cloud Run Deployment (Complete)
-- [x] Google Cloud SDK installed at `~/google-cloud-sdk/` (Complete)
-- [x] Data Pre-Aggregation Summary Tables (Complete)
-- [x] Automated CI/CD for Cloud Run (Complete)
-- [x] IAM-based Auth for BigQuery (Complete)
-- [ ] Match xG Timelines per minute (Planned)
-- [ ] Goalkeeper Advanced Metrics (Planned)
+This section is useful for scouting, player comparison, and understanding whether production is supported by underlying chance quality.
 
-## 📄 License
+## Key Metrics
 
-TODO: Add license information (e.g., MIT, Apache 2.0).
+- **Expected goals (xG):** Estimated probability that a shot becomes a goal, based on shot context.
+- **Total xG:** Sum of all shot probabilities. Higher values usually mean better or more frequent chances.
+- **xG per shot:** Average shot quality. Useful for separating high-volume shooting from high-quality chance creation.
+- **Shots on target percentage:** Share of shots that force a save or become goals.
+- **Pass completion:** Share of completed passes.
+- **Passing under pressure:** Passing performance when the player or team is pressured by opponents.
+- **Shot assists:** Passes that directly create shots.
+- **Progressive and attacking passes:** Actions such as through balls, switches, crosses, and cutbacks that help advance or finish attacks.
+- **Radar normalization:** Team radar values are scaled against the available dataset so strengths and weaknesses can be compared more easily.
 
----
-*Developed for advanced football scouting and data-driven storytelling.*
+## Typical Analysis Workflows
+
+1. Start with **Competition Analysis** to find standout teams, players, and broad tournament trends.
+2. Move to **Match Analysis** to inspect a specific game and compare chance quality with the final result.
+3. Use **Team Analysis** to understand a team's attacking profile, pressure response, and shot creation patterns.
+4. Use **Player Analysis** to investigate individual contribution and match-by-match consistency.
+
+## Data
+
+The dashboard uses StatsBomb-style event data, including shots, passes, pressure events, fouls, cards, duels, team names, player names, match identifiers, and competition labels.
+
+Some metrics depend on event availability. If a competition or player has limited event coverage, certain charts or tables may contain fewer records.
+
+## Notes
+
+This repository contains the dashboard source code and supporting documentation. The public-facing experience is the live dashboard linked above; deployment and infrastructure notes are intentionally kept out of this README.

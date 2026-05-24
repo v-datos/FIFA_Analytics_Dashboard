@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from google.cloud import bigquery
 from bigquery_helpers import execute_query
 from data_loader import get_competitions, format_competition_name
-from fifa_visualizations_bq import plot_pressure_events, create_interactive_pressure_passing_comparison
+from fifa_visualizations_bq import get_cached_pressure_events, create_interactive_pressure_passing_comparison
+
 
 def render_competition_tab(client):
     st.header("Competition Overview")
@@ -98,9 +99,8 @@ def render_competition_tab(client):
         def render_pressure_events():
             with st.spinner("Generating pressure events visualization..."):
                 try:
-                    fig_pressure = plot_pressure_events(client, selected_competition)
-                    st.pyplot(fig_pressure)
-                    plt.close(fig_pressure)
+                    png_bytes = get_cached_pressure_events(client, selected_competition)
+                    st.image(png_bytes, use_column_width=True)
                 except Exception as e:
                     st.error(f"Error creating pressure events comparison: {str(e)}")
         

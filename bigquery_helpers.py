@@ -143,3 +143,15 @@ def build_where_clause(team=None, competition=None, match_id=None, player=None, 
 
     where_clause = " AND ".join(conditions) if conditions else "1=1"
     return where_clause, params
+
+
+def fig_to_png_bytes(fig):
+    """Serialize a Matplotlib figure to PNG bytes and close the figure to release memory."""
+    import io
+    import matplotlib.pyplot as plt
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", dpi=100)
+    plt.close(fig)
+    buf.seek(0)
+    return buf.getvalue()
+

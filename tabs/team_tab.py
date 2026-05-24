@@ -3,12 +3,13 @@ import matplotlib.pyplot as plt
 from data_loader import get_competitions, get_teams, format_competition_name
 from fifa_metrics_bq import analyze_team_metrics, get_team_radar_stats
 from fifa_visualizations_bq import (
-    create_shot_map,
-    create_team_radar_chart,
-    plot_attacking_passes,
+    get_cached_shot_map,
+    get_cached_radar_chart,
+    get_cached_attacking_passes,
     create_interactive_xg_distribution,
     font_play
 )
+
 
 def render_team_tab(client):
     st.header("Team Analysis")
@@ -136,17 +137,15 @@ def render_team_tab(client):
                             # Get radar stats
                             radar_stats = get_team_radar_stats(team_metrics)
 
-                            # Create radar chart with dynamic boundaries
-                            fig_radar, ax_radar = create_team_radar_chart(
+                            # Retrieve cached radar chart bytes
+                            png_bytes = get_cached_radar_chart(
                                 client,
                                 radar_stats,
-                                font_play,
                                 team_name=selected_team,
                                 competition=comp_filter,
                                 team_color='#1f77b4'
                             )
-                            st.pyplot(fig_radar)
-                            plt.close(fig_radar)
+                            st.image(png_bytes, use_column_width=True)
                         except Exception as e:
                             st.error(f"Error creating radar chart: {str(e)}")
                 
@@ -172,9 +171,8 @@ def render_team_tab(client):
             def render_team_shot_map():
                 with st.spinner("Generating shot map..."):
                     try:
-                        fig_shot_map, ax_shot = create_shot_map(client, selected_team, competition=comp_filter)
-                        st.pyplot(fig_shot_map)
-                        plt.close(fig_shot_map)
+                        png_bytes = get_cached_shot_map(client, selected_team, competition=comp_filter)
+                        st.image(png_bytes, use_column_width=True)
                     except Exception as e:
                         st.error(f"Error creating shot map: {str(e)}")
             
@@ -189,9 +187,14 @@ def render_team_tab(client):
             def render_attacking_passes():
                 with st.spinner("Generating attacking passes visualization..."):
                     try:
-                        fig_attacking_passes, axes_passes = plot_attacking_passes(client, selected_team, competition=comp_filter)
-                        st.pyplot(fig_attacking_passes)
-                        plt.close(fig_attacking_passes)
+                        # Extract pre-loaded total/completed pass counts to avoid BQ scan overhead
+                        total = passing.get('total_passes', None)
+                        completed = passing.get('completed_passes', None)
+                        png_bytes = get_cached_attacking_passes(
+                            client, selected_team, competition=comp_filter,
+                            total_passes=total, completed_passes=completed
+                        )
+                        st.image(png_bytes, use_column_width=True)
                     except Exception as e:
                         st.error(f"Error creating attacking passes visualization: {str(e)}")
             

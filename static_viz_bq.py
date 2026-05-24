@@ -497,21 +497,25 @@ def plot_pressure_events(client: bigquery.Client, competition: str) -> plt.Figur
     plt.Figure
         Matplotlib figure object
     """
-    # Query pressure events for the competition using parameterized query
+    # Query pressure events for the competition with server-side 6x1 binning
     params = [bigquery.ScalarQueryParameter("competition", "STRING", competition)]
 
     query = """
-    SELECT team, x, y
+    SELECT 
+        team,
+        FLOOR(x / 20) * 20 as x_bin,
+        COUNT(*) as count
     FROM {{TABLE}}
     WHERE competition_name = @competition
         AND type = 'Pressure'
         AND x IS NOT NULL
         AND y IS NOT NULL
+    GROUP BY team, x_bin
     """
 
-    pressure_df = execute_query(client, query, params)
+    pressure_binned = execute_query(client, query, params)
 
-    if pressure_df.empty:
+    if pressure_binned.empty:
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.text(0.5, 0.5, 'No pressure data available',
                 ha='center', va='center', fontsize=14)
@@ -520,14 +524,10 @@ def plot_pressure_events(client: bigquery.Client, competition: str) -> plt.Figur
     # Setup pitch
     pitch = Pitch(line_zorder=2, line_color='black', pad_top=20)
 
-    # Create bin statistic template
-    bin_statistic = pitch.bin_statistic([0], [0], statistic='count', bins=(6, 1),
-        normalize=True)
-
     GRID_HEIGHT = 0.8
     CBAR_WIDTH = 0.03
 
-    teams = sorted(pressure_df['team'].unique())
+    teams = sorted(pressure_binned['team'].unique())
     n_teams = len(teams)
 
     # Calculate grid dimensions
@@ -542,21 +542,30 @@ def plot_pressure_events(client: bigquery.Client, competition: str) -> plt.Figur
     fig.set_facecolor('white')
 
     for i, ax in enumerate(axs['pitch'].flat[:n_teams]):
+        team_name = teams[i]
         # Plot team name
-        ax.text(60, -10, teams[i],
+        ax.text(60, -10, team_name,
                 ha='center', va='center', fontsize=25,
                 fontproperties=font_play)
 
-        # Calculate and plot heatmap
-        bin_statistic['statistic'] = pitch.bin_statistic(
-            pressure_df[pressure_df['team'] == teams[i]]['x'],
-            pressure_df[pressure_df['team'] == teams[i]]['y'],
-            statistic='count',
-            bins=(6, 1),
-            normalize=True
-        )['statistic']
+        # Reconstruct the 6x1 bin statistic manual structure expected by mplsoccer
+        team_data = pressure_binned[pressure_binned['team'] == team_name]
+        
+        statistic = np.zeros((1, 6))
+        for _, row in team_data.iterrows():
+            xi = int(min(max(row['x_bin'] // 20, 0), 5))
+            statistic[0, xi] = row['count']
 
-        heatmap = pitch.heatmap(bin_statistic, ax=ax, cmap='Reds', alpha=0.8)
+        # Normalize manually (identical to mplsoccer bin_statistic normalize=True)
+        total_count = statistic.sum()
+        if total_count > 0:
+            statistic = statistic / total_count
+
+        # Get a dummy bin_statistic and load our manually aggregated statistic
+        dummy_stat = pitch.bin_statistic([0], [0], statistic='count', bins=(6, 1))
+        dummy_stat['statistic'] = statistic
+
+        heatmap = pitch.heatmap(dummy_stat, ax=ax, cmap='Reds', alpha=0.8)
 
     # Remove any unused axes
     for ax in axs['pitch'].flat[n_teams:]:
@@ -582,7 +591,9 @@ def plot_pressure_events(client: bigquery.Client, competition: str) -> plt.Figur
 
 def plot_attacking_passes(client: bigquery.Client, team: str,
                           competition: Optional[str] = None,
-                          match_id: Optional[int] = None) -> Tuple[plt.Figure, object]:
+                          match_id: Optional[int] = None,
+                          total_passes: Optional[int] = None,
+                          completed_passes: Optional[int] = None) -> Tuple[plt.Figure, object]:
     """
     Plots a map of attacking passes (crosses, cutbacks, switches, and through balls) for a given team.
     Same style as Copa America dashboard.
@@ -597,6 +608,10 @@ def plot_attacking_passes(client: bigquery.Client, team: str,
         Filter by competition
     match_id : int, optional
         Filter by match
+    total_passes : int, optional
+        Total passes count from pre-loaded metrics (to avoid redundant queries)
+    completed_passes : int, optional
+        Completed passes count from pre-loaded metrics (to avoid redundant queries)
 
     Returns
     -------
@@ -623,7 +638,24 @@ def plot_attacking_passes(client: bigquery.Client, team: str,
 
     where_clause = " AND ".join(conditions)
 
-    # Query pass data
+    # 1. Fetch total and completed pass counts if not supplied (as fallback)
+    if total_passes is None or completed_passes is None:
+        count_query = f"""
+        SELECT 
+            COUNT(*) as total,
+            COUNTIF(pass_outcome IS NULL) as completed
+        FROM {{{{TABLE}}}}
+        WHERE {where_clause}
+        """
+        counts_df = execute_query(client, count_query, params)
+        if not counts_df.empty:
+            total_passes = total_passes if total_passes is not None else int(counts_df['total'].iloc[0])
+            completed_passes = completed_passes if completed_passes is not None else int(counts_df['completed'].iloc[0])
+        else:
+            total_passes = total_passes or 0
+            completed_passes = completed_passes or 0
+
+    # 2. Query special passes coordinates (filtering server-side to slash payload size)
     query = f"""
     SELECT
         x, y,
@@ -635,6 +667,7 @@ def plot_attacking_passes(client: bigquery.Client, team: str,
         pass_through_ball
     FROM {{{{TABLE}}}}
     WHERE {where_clause}
+        AND (pass_cross = TRUE OR pass_cut_back = TRUE OR pass_switch = TRUE OR pass_through_ball = TRUE)
     """
 
     pass_df = execute_query(client, query, params)
@@ -646,9 +679,6 @@ def plot_attacking_passes(client: bigquery.Client, team: str,
         return fig, ax
 
     # Filter different types of passes
-    completed_passes = pass_df[pass_df['pass_outcome'].isna()]  # NULL means completed
-    # Note: BigQuery BOOL columns are returned as Python bools. 
-    # Use direct boolean check or convert to bool for robustness.
     cross_passes = pass_df[pass_df['pass_cross'].fillna(False).astype(bool)]
     cutback_passes = pass_df[pass_df['pass_cut_back'].fillna(False).astype(bool)]
     switch_passes = pass_df[pass_df['pass_switch'].fillna(False).astype(bool)]
@@ -706,16 +736,16 @@ def plot_attacking_passes(client: bigquery.Client, team: str,
     )
 
     axs['title'].text(
-        0.06, 0.8, f"Total Passes: {len(pass_df)}",
+        0.06, 0.8, f"Total Passes: {total_passes}",
         color='#000009', va='center', ha='center', fontsize=18, fontproperties=font_play,
     )
 
     axs['title'].text(
-        0.08, 0.6, f"Completed Passes: {len(completed_passes)}",
+        0.08, 0.6, f"Completed Passes: {completed_passes}",
         color='#000009', va='center', ha='center', fontsize=18, fontproperties=font_play,
     )
 
-    completion_rate = (len(completed_passes) / len(pass_df) * 100) if len(pass_df) > 0 else 0
+    completion_rate = (completed_passes / total_passes * 100) if total_passes > 0 else 0
     axs['title'].text(
         0.08, 0.4, f"Completion Rate: {completion_rate:.2f}%",
         color='#000009', va='center', ha='center', fontsize=18, fontproperties=font_play,

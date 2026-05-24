@@ -32,31 +32,32 @@ def create_interactive_pressure_heatmap(client: bigquery.Client, competition: st
     go.Figure
         Plotly figure object
     """
-    # Query pressure events for the competition using parameterized query
+    # Query pressure events for the competition with server-side 10x10 binning
     params = [bigquery.ScalarQueryParameter("competition", "STRING", competition)]
 
     query = """
-    SELECT team, x, y
-    FROM (
-        SELECT team, x, y
-        FROM {{TABLE}}
-        WHERE competition_name = @competition
-            AND type = 'Pressure'
-            AND x IS NOT NULL
-            AND y IS NOT NULL
-        LIMIT 100000
-    )
+    SELECT 
+        team,
+        FLOOR(x / 10) * 10 as x_bin, 
+        FLOOR(y / 10) * 10 as y_bin, 
+        COUNT(*) as count
+    FROM {{TABLE}}
+    WHERE competition_name = @competition
+        AND type = 'Pressure'
+        AND x IS NOT NULL
+        AND y IS NOT NULL
+    GROUP BY team, x_bin, y_bin
     """
 
-    pressure_df = execute_query(client, query, params)
+    pressure_binned = execute_query(client, query, params)
 
-    if pressure_df.empty:
+    if pressure_binned.empty:
         fig = go.Figure()
         fig.add_annotation(text='No pressure data available',
-                          x=0.5, y=0.5, showarrow=False, font=dict(size=16))
+                           x=0.5, y=0.5, showarrow=False, font=dict(size=16))
         return fig
 
-    teams = sorted(pressure_df['team'].unique())
+    teams = sorted(pressure_binned['team'].unique())
     n_teams = len(teams)
 
     # Calculate grid dimensions
@@ -71,11 +72,22 @@ def create_interactive_pressure_heatmap(client: bigquery.Client, competition: st
         specs=[[{"type": "xy"} for _ in range(ncols)] for _ in range(nrows)]
     )
 
+    # Centers of the 10x10 bins
+    x_centers = np.arange(5, 125, 10)
+    y_centers = np.arange(5, 85, 10)
+
     for i, team in enumerate(teams):
         row = (i // ncols) + 1
         col = (i % ncols) + 1
 
-        team_data = pressure_df[pressure_df['team'] == team]
+        team_data = pressure_binned[pressure_binned['team'] == team]
+
+        # Reconstruct 8x12 grid
+        z = np.zeros((8, 12))
+        for _, r in team_data.iterrows():
+            xi = int(min(max(r['x_bin'] // 10, 0), 11))
+            yi = int(min(max(r['y_bin'] // 10, 0), 7))
+            z[yi, xi] = r['count']
 
         # Add pitch background for each subplot
         fig.add_shape(type="rect", x0=0, y0=0, x1=120, y1=80,
@@ -83,15 +95,14 @@ def create_interactive_pressure_heatmap(client: bigquery.Client, competition: st
                       row=row, col=col)
 
         # Add heatmap trace
-        fig.add_trace(go.Histogram2d(
-            x=team_data['x'],
-            y=team_data['y'],
+        fig.add_trace(go.Heatmap(
+            z=z,
+            x=x_centers,
+            y=y_centers,
             colorscale='Reds',
-            nbinsx=12,
-            nbinsy=8,
             showscale=False,
             opacity=0.7,
-            hovertemplate=f'Team: {team}<br>Pos: (%{{x:.1f}}, %{{y:.1f}})<br>Count: %{{z}}<extra></extra>'
+            hovertemplate=f'Team: {team}<br>X: %{{x}}<br>Y: %{{y}}<br>Count: %{{z}}<extra></extra>'
         ), row=row, col=col)
 
         # Update axes for each subplot

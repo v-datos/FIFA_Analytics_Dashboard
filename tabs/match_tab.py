@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from google.cloud import bigquery
 from bigquery_helpers import execute_query
 from data_loader import get_competitions, get_matches, get_match_comparison_stats, format_competition_name
-from fifa_visualizations_bq import create_shot_map, create_xg_distribution_comparison
+from fifa_visualizations_bq import get_cached_shot_map, create_xg_distribution_comparison
 
 def render_match_tab(client):
     st.header("Match Analysis")
@@ -38,23 +38,22 @@ def render_match_tab(client):
                     format_func=lambda x: match_options[x],
                     key="match_tab_selector"
                 )
-                selected_match_id = matches_df.iloc[selected_match_idx]['match_id']
+                selected_match_row = matches_df.iloc[selected_match_idx]
+                selected_match_id = selected_match_row['match_id']
 
-            # Get teams in the match using parameterized query
-            teams_query = """
-            SELECT DISTINCT team
-            FROM {{TABLE}}
-            WHERE match_id = @match_id AND team IS NOT NULL
-            ORDER BY team
-            """
-            teams_params = [bigquery.ScalarQueryParameter("match_id", "INT64", int(selected_match_id))]
-            teams_in_match = execute_query(client, teams_query, teams_params)
+            # Resolve team names directly from the pre-loaded matches_df to save raw BQ scans
+            teams_str = selected_match_row.get('teams', '')
+            team1, team2 = None, None
+            if pd.notna(teams_str) and ',' in teams_str:
+                teams_list = sorted(teams_str.split(','))
+                if len(teams_list) >= 2:
+                    team1 = teams_list[0]
+                    team2 = teams_list[1]
 
-            if len(teams_in_match) >= 2:
-                team1 = teams_in_match.iloc[0]['team']
-                team2 = teams_in_match.iloc[1]['team']
+            if team1 and team2:
 
                 st.markdown(f"""
+
                     <div style="
                         display: flex; justify-content: center; align-items: center;
                         background: linear-gradient(135deg, #0d4a28, #1a6b3c);
@@ -124,9 +123,8 @@ def render_match_tab(client):
                     @st.fragment
                     def render_shot_map_team1():
                         with st.spinner(f"Generating shot map for {team1}..."):
-                            fig_shots1, ax1 = create_shot_map(client, team1, match_id=selected_match_id)
-                            st.pyplot(fig_shots1)
-                            plt.close(fig_shots1)
+                            png_bytes = get_cached_shot_map(client, team1, match_id=selected_match_id)
+                            st.image(png_bytes, use_column_width=True)
                     
                     render_shot_map_team1()
 
@@ -136,9 +134,8 @@ def render_match_tab(client):
                     @st.fragment
                     def render_shot_map_team2():
                         with st.spinner(f"Generating shot map for {team2}..."):
-                            fig_shots2, ax2 = create_shot_map(client, team2, match_id=selected_match_id)
-                            st.pyplot(fig_shots2)
-                            plt.close(fig_shots2)
+                            png_bytes = get_cached_shot_map(client, team2, match_id=selected_match_id)
+                            st.image(png_bytes, use_column_width=True)
                     
                     render_shot_map_team2()
             else:

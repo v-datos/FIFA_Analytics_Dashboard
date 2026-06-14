@@ -236,7 +236,7 @@ def get_player_stats(client, player_name, team_name=None, competition=None):
         conditions.append("team = @team")
         params.append(bigquery.ScalarQueryParameter("team", "STRING", team_name))
     if competition:
-        conditions.append("competition_name = @competition")
+        conditions.append("match_id IN (SELECT match_id FROM `midyear-castle-328020.fifa_data.team_match_summary` WHERE competition_name = @competition)")
         params.append(bigquery.ScalarQueryParameter("competition", "STRING", competition))
 
     where_clause = " AND ".join(conditions)

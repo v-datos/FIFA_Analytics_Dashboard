@@ -11,7 +11,7 @@ from typing import Dict, Union, Optional, Tuple, List, Any
 import warnings
 warnings.filterwarnings('ignore')
 
-from bigquery_helpers import run_query, BIGQUERY_TABLE
+from bigquery_helpers import execute_query, BIGQUERY_TABLE
 
 
 # ============================================================================
@@ -71,7 +71,7 @@ def analyze_team_passes(client: bigquery.Client, team: str,
     WHERE {where_clause}
     """
 
-    result_df = run_query(client, query, query_params)
+    result_df = execute_query(client, query, query_params)
     if result_df.empty:
         return {
             'total_passes': 0, 'matches_played': 0, 'completed_passes': 0,
@@ -163,7 +163,7 @@ def analyze_team_shots(client: bigquery.Client, team: str,
     WHERE {where_clause}
     """
 
-    result_df = run_query(client, query, query_params)
+    result_df = execute_query(client, query, query_params)
     if result_df.empty:
         return {
             'matches_played': 0, 'total_shots': 0, 'shots_on_target': 0, 'goals': 0,
@@ -275,7 +275,7 @@ def analyze_team_defense(client: bigquery.Client, team: str,
         AND type = 'Shot'
     """
     
-    result_df = run_query(client, query, query_params)
+    result_df = execute_query(client, query, query_params)
     if result_df.empty:
         return {
             'matches_played': 0,
@@ -404,7 +404,7 @@ def analyze_team_metrics(client: bigquery.Client, team: str,
         FROM passing_stats p, shooting_stats s, defense_stats d
         """
 
-        result_df = run_query(client, query, query_params)
+        result_df = execute_query(client, query, query_params)
         
         if result_df.empty:
             # Fallback to individual calls if combined query fails for some reason
@@ -676,7 +676,7 @@ def calculate_radar_boundaries(_client: bigquery.Client, competition: Optional[s
     FROM team_metrics
     """
 
-    res_df = run_query(_client, query, radar_params)
+    res_df = execute_query(_client, query, radar_params)
 
     if res_df.empty:
         return [0.0]*9, [100.0]*9
